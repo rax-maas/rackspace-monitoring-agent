@@ -49,4 +49,35 @@ siggen:
 siggenupload:
 	cmake --build build -- siggenupload
 
-.PHONY: clean lint package packagerepo packagerepoupload siggen siggenupload install
+# Ubuntu 24.04 Docker build targets
+ubuntu24-build:
+	@echo "==> Building rackspace-monitoring-agent .deb for Ubuntu 24.04"
+	@echo "==> First build may take 15-20 minutes (downloading dependencies, compiling)."
+	@echo "==> Subsequent builds will be faster due to Docker layer caching."
+	@if [ ! -d "../sigar" ]; then \
+		echo "ERROR: ../sigar directory not found."; \
+		echo "Clone the private sigar repo as a sibling directory first:"; \
+		echo "  git clone git@github.com:racker/sigar.git ../sigar"; \
+		exit 1; \
+	fi
+	mkdir -p dist
+	rm -rf .docker-context && mkdir -p .docker-context
+	cp -a . .docker-context/agent
+	cp -a ../sigar .docker-context/sigar
+	docker build -f .docker-context/agent/Dockerfile.ubuntu24 -t rma-ubuntu24-builder .docker-context
+	rm -rf .docker-context
+	docker run --rm -v "$$(pwd)/dist:/output" rma-ubuntu24-builder
+	@echo "==> Done. Package is in ./dist/"
+
+ubuntu24-test:
+	docker run --rm -v "$$(pwd)/dist:/packages:ro" ubuntu:24.04 \
+		bash -c "apt-get update && apt-get install -y /packages/*.deb && rackspace-monitoring-agent -v"
+
+ubuntu24-shell:
+	docker run --rm -it -v "$$(pwd)/dist:/output" rma-ubuntu24-builder bash
+
+ubuntu24-clean:
+	rm -rf dist/
+	-docker rmi rma-ubuntu24-builder 2>/dev/null
+
+.PHONY: clean lint package packagerepo packagerepoupload siggen siggenupload install ubuntu24-build ubuntu24-test ubuntu24-clean ubuntu24-shell

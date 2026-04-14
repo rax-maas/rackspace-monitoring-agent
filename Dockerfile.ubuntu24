@@ -1,0 +1,39 @@
+FROM ubuntu:24.04
+
+LABEL maintainer="Rackspace Monitoring"
+LABEL description="Build rackspace-monitoring-agent on Ubuntu 24.04 with repo-ready artifacts"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential cmake git curl ca-certificates \
+    dpkg-dev debhelper fakeroot lsb-release file \
+    reprepro gnupg openssl rclone \
+    libtirpc-dev perl luajit libluajit-5.1-dev libuv1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ubuntu 24.04 moved rpc headers to tirpc — sigar expects them at standard path
+RUN ln -s /usr/include/tirpc/rpc /usr/include/rpc && \
+    ln -s /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
+
+WORKDIR /build
+
+# Copy the agent project and sigar (sigar must be pre-cloned as a sibling directory)
+# The Makefile prepares a temporary build context with the expected directory names.
+COPY agent/ /build/rackspace-monitoring-agent/
+COPY sigar/ /build/sigar/
+
+WORKDIR /build/rackspace-monitoring-agent
+RUN chmod +x build-ubuntu24.sh && ./build-ubuntu24.sh
+
+# Copy all repo-ready artifacts to /output
+CMD ["bash", "-c", "\
+  mkdir -p /output && \
+  cd /build/rackspace-monitoring-agent && \
+  cp -f build/ubuntu-24.04-*-rackspace-monitoring-agent-* /output/ 2>/dev/null; \
+  cp -rf build/ubuntu-24.04-* /output/ 2>/dev/null; \
+  cp -f build/*.deb /output/ 2>/dev/null; \
+  cp -f build/VERSION /output/ 2>/dev/null; \
+  cp -f meta/*.deb /output/ 2>/dev/null; \
+  echo '==> Artifacts:' && ls -lhR /output/"]
