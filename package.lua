@@ -4,7 +4,7 @@ return {
   luvi = {
     version = "2.7.6-2-sigar",
     flavor = "sigar",
-    url = "https://github.com/virgo-agent-toolkit/luvi/releases/download/v%s-sigar/luvi-%s-%s"
+    url = "https://github.com/virgo-agent-toolkit/luvi/releases/download/v%s/luvi-%s-%s"
   },
   dependencies = {
     "rphillips/options@0.0.5",

@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+build/
+dist/
+*.deb
+*.rpm
+*.msi
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+
+# CI/CD
+.travis.yml
+appveyor.yml
+.github/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Vagrant
+.vagrant/
+Vagrantfile
+
+# Tests
+tests/tmpdir/
+
+# Misc
+*.log

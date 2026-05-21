@@ -13,3 +13,15 @@ GPATH
 GRTAGS
 GTAGS
 /.idea
+
+# Private keys - never commit
+server.key
+*.pem
+agent-package-signing-key.txt
+dist
+signing-key.asc
+.DS_Store
+vendor-sigar
+.docker-context
+src/
+buildtools/
